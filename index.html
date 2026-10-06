@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#6d5df6">
+<meta name="mobile-web-app-capable" content="yes">
+<title>My Voice Studio</title>
+<style>
+:root{--bg:#f4f3ff;--card:rgba(255,255,255,.78);--tx:#17152b;--mu:#6c6a85;--ac:#6d5df6;--ac2:#ec4899;--bd:rgba(109,93,246,.18);--chip:#ecebff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e0d1a;--card:rgba(28,26,52,.72);--tx:#f1f0ff;--mu:#9d9bc0;--ac:#8b7dff;--ac2:#f472b6;--bd:rgba(139,125,255,.22);--chip:#262348}}
+:root[data-theme="dark"]{--bg:#0e0d1a;--card:rgba(28,26,52,.72);--tx:#f1f0ff;--mu:#9d9bc0;--ac:#8b7dff;--ac2:#f472b6;--bd:rgba(139,125,255,.22);--chip:#262348}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:20px 16px 40px;background:var(--bg);background-image:radial-gradient(600px 300px at 10% -5%,rgba(109,93,246,.35),transparent),radial-gradient(500px 300px at 100% 0,rgba(236,72,153,.25),transparent)}
+.w{max-width:480px;margin:0 auto}
+h1{font-size:1.45rem;margin:0 0 4px;letter-spacing:-.02em}
+.sub{color:var(--mu);font-size:.88rem;margin:0 0 16px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:16px;margin-bottom:12px}
+.row{display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:.92rem;margin:14px 0 6px}
+.row:first-child{margin-top:0}
+.val{background:var(--chip);color:var(--ac);padding:3px 10px;border-radius:99px;font-size:.8rem}
+input[type=range]{width:100%;accent-color:var(--ac);height:26px}
+.s{color:var(--mu);font-size:.76rem}
+select,textarea,input[type=url]{width:100%;padding:12px;border:1px solid var(--bd);border-radius:12px;background:var(--chip);color:var(--tx);font:inherit;font-size:.95rem}
+textarea{min-height:150px;resize:vertical}
+.big{display:block;width:100%;padding:15px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 10px 24px rgba(109,93,246,.35)}
+.big:disabled{opacity:.5}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px}
+.alt{padding:13px 6px;border:0;border-radius:12px;background:var(--chip);color:var(--ac);font-weight:700;cursor:pointer;font-size:.95rem}
+.alt:disabled{opacity:.5}
+.tg{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-weight:600;font-size:.92rem}
+.tg input{width:22px;height:22px;accent-color:var(--ac)}
+audio{width:100%;margin:6px 0 4px}
+.bar{height:10px;border-radius:99px;background:var(--chip);overflow:hidden;margin-top:10px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--ac),var(--ac2));transition:width .25s}
+#pct{font-weight:700;font-size:1.05rem;text-align:center;margin-top:10px;min-height:1.3em}
+#msg{color:var(--mu);font-size:.82rem;text-align:center;margin-top:8px;min-height:1.2em;white-space:pre-wrap}
+#st{font-size:.82rem;margin-top:8px;color:var(--mu)}
+</style></head><body><div class="w">
+<h1>My Voice Studio</h1><p class="sub">Free English voiceover. Runs on Google Colab's free CPU, so your phone stays fast.</p>
+
+<div class="c">
+<div class="row">Colab server link <span class="val" id="stv">not connected</span></div>
+<input type="url" id="srv" placeholder="https://xxxx.trycloudflare.com" autocomplete="off" autocapitalize="off" spellcheck="false">
+<div style="height:8px"></div>
+<button class="big" id="ld">1. Connect to Colab</button>
+<div class="s" style="margin-top:8px">Run the Colab cell first. It prints a link. Paste it here once; it is remembered.</div>
+</div>
+
+<div class="c">
+<div class="row">Voice A</div>
+<select id="v">
+<option value="am_michael">American male: Michael</option><option value="am_adam">American male: Adam</option>
+<option value="bm_george">British male: George</option><option value="bm_lewis">British male: Lewis</option>
+<option value="af_heart">American female: Heart</option><option value="af_bella">American female: Bella</option><option value="af_nicole">American female: Nicole</option><option value="af_sarah">American female: Sarah</option><option value="af_sky">American female: Sky</option><option value="af_nova">American female: Nova</option>
+<option value="bf_emma">British female: Emma</option><option value="bf_isabella">British female: Isabella</option></select>
+<div class="row">Voice B (to blend)</div><select id="v2"></select>
+<div class="row">Mix <span class="val" id="mv">0%</span></div><input type="range" id="mx" min="0" max="1" step="0.05" value="0"><div class="s">0% = only Voice A. 30% = 70% A + 30% B.</div>
+<div class="row">Pitch <span class="val" id="pv">0.0</span></div><input type="range" id="p" min="-4" max="4" step="0.25" value="0"><div class="s">Semitones. Keep within -1 and +1 for the most natural sound.</div>
+<div class="row">Speed <span class="val" id="sv">1.00x</span></div><input type="range" id="sp" min="0.7" max="1.4" step="0.05" value="1">
+<div class="row">Pause between lines <span class="val" id="pav">0.50 s</span></div><input type="range" id="pa" min="0" max="1.5" step="0.05" value="0.5">
+<label class="tg">Even out volume <input type="checkbox" id="pol" checked></label></div>
+
+<div class="c"><div class="row">Script <span class="val">one idea per line</span></div>
+<textarea id="tx">Ever wondered why the sky is blue?
+It's not paint... and it's not the ocean.
+Sunlight looks white, but it hides every color of the rainbow.
+When it hits the air, the blue light scatters the most.
+So the next time you look up, remember this.
+The sky isn't blue. It's sunlight, bouncing around you.</textarea></div>
+
+<button class="big" id="go" disabled>2. Make voice</button>
+<button class="alt" id="cn" style="display:none;width:100%;margin-top:8px">Cancel</button>
+<div class="bar"><i id="pb"></i></div>
+<div id="pct"></div>
+<div id="msg"></div>
+
+<div class="c" id="o" style="display:none;margin-top:12px"><audio id="a" controls></audio>
+<div class="three"><button class="alt" id="dm">MP3</button><button class="alt" id="dw">WAV</button><button class="alt" id="d4">M4A</button></div>
+<div id="st"></div></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+<script>
+const $=i=>document.getElementById(i),msg=t=>$('msg').textContent=t||'';
+const tick=()=>new Promise(r=>setTimeout(r,0));
+let SERVER='',out=null,SR=24000,stop=false,busy=false;
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const clean=u=>u.trim().replace(/\/+$/,'');
+$('srv').value=new URLSearchParams(location.search).get('server')||ls.get('srv')||'';
+$('v2').innerHTML=$('v').innerHTML;$('v2').value='am_adam';
+$('mx').oninput=()=>$('mv').textContent=Math.round($('mx').value*100)+'%';
+$('p').oninput=()=>$('pv').textContent=(+$('p').value).toFixed(1);
+$('sp').oninput=()=>$('sv').textContent=(+$('sp').value).toFixed(2)+'x';
+$('pa').oninput=()=>$('pav').textContent=(+$('pa').value).toFixed(2)+' s';
+const prog=(p,t)=>{$('pb').style.width=p+'%';$('pct').textContent=t||''};
+
+async function connect(){
+ const u=clean($('srv').value);if(!u){msg('Paste the link from Colab first.');return}
+ $('ld').disabled=true;$('stv').textContent='connecting…';msg('');
+ try{const r=await fetch(u+'/ping'),j=await r.json();if(!j.ok)throw new Error('bad reply');
+  SERVER=u;ls.set('srv',u);$('stv').textContent='connected';$('ld').textContent='Connected ✓ (tap to reconnect)';$('go').disabled=false;msg('Ready. Write your script and tap "Make voice".')}
+ catch(e){SERVER='';$('go').disabled=true;$('stv').textContent='not connected';$('ld').textContent='1. Connect to Colab';msg('Could not connect. Make sure the Colab cell is still running, then paste the newest link.')}
+ $('ld').disabled=false}
+$('ld').onclick=connect;
+if($('srv').value)connect();
+
+function dec(buf){const v=new DataView(buf);let p=12,sr=24000;
+ while(p<v.byteLength-8){const id=String.fromCharCode(v.getUint8(p),v.getUint8(p+1),v.getUint8(p+2),v.getUint8(p+3)),sz=v.getUint32(p+4,true);
+  if(id==='fmt ')sr=v.getUint32(p+12,true);
+  if(id==='data'){const n=Math.min(sz,v.byteLength-p-8)>>1,a=new Float32Array(n);for(let i=0;i<n;i++)a[i]=v.getInt16(p+8+i*2,true)/32768;return{a,sr}}
+  p+=8+sz+(sz&1)}
+ throw new Error('Bad audio from server')}
+function wavBlob(a,sr){const b=new DataView(new ArrayBuffer(44+a.length*2)),w=(o,s)=>[...s].forEach((c,i)=>b.setUint8(o+i,c.charCodeAt(0)));
+ w(0,'RIFF');b.setUint32(4,36+a.length*2,true);w(8,'WAVEfmt ');b.setUint32(16,16,true);b.setUint16(20,1,true);b.setUint16(22,1,true);b.setUint32(24,sr,true);b.setUint32(28,sr*2,true);b.setUint16(32,2,true);b.setUint16(34,16,true);w(36,'data');b.setUint32(40,a.length*2,true);
+ for(let i=0;i<a.length;i++){const v=Math.max(-1,Math.min(1,a[i]));b.setInt16(44+i*2,v<0?v*32768:v*32767,true)}return new Blob([b],{type:'audio/wav'})}
+async function mp3Blob(a,sr){const e=new lamejs.Mp3Encoder(1,sr,128),s=new Int16Array(a.length);
+ for(let i=0;i<a.length;i++){const v=Math.max(-1,Math.min(1,a[i]));s[i]=v<0?v*32768:v*32767}
+ const p=[];let k=0;for(let i=0;i<s.length;i+=1152){const r=e.encodeBuffer(s.subarray(i,i+1152));if(r.length)p.push(new Uint8Array(r));
+  if(++k%200===0){$('st').textContent='Making MP3… '+Math.round(i/s.length*100)+'%';await tick()}}
+ const f=e.flush();if(f.length)p.push(new Uint8Array(f));return new Blob(p,{type:'audio/mpeg'})}
+
+function setBusy(b){busy=b;$('go').disabled=b||!SERVER;$('cn').style.display=b?'block':'none';['dm','dw','d4'].forEach(i=>$(i).disabled=b)}
+
+$('cn').onclick=()=>{stop=true;$('cn').disabled=true;msg('Cancelling…')};
+
+$('go').onclick=async()=>{
+ if(!SERVER||busy)return;
+ const lines=$('tx').value.split('\n').map(s=>s.trim()).filter(Boolean);
+ if(!lines.length){msg('Type some text first.');return}
+ const segs=[];lines.forEach(l=>{const p=l.split(/(?<=[.!?…])\s+/).filter(Boolean);p.forEach((t,k)=>segs.push({t,end:k===p.length-1}))});
+ const total=segs.reduce((n,s)=>n+s.t.length,0),pause=+$('pa').value;
+ const cfg={voice:$('v').value,voice2:$('v2').value,mix:+$('mx').value,speed:+$('sp').value,pitch:+$('p').value};
+ stop=false;$('cn').disabled=false;setBusy(true);$('o').style.display='none';msg('');prog(0,'0%');
+ const t0=Date.now(),parts=[];let done=0;
+ try{
+  for(let i=0;i<segs.length;i++){
+   if(stop)throw new Error('Cancelled.');
+   const r=await fetch(SERVER+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...cfg,text:segs[i].t})});
+   if(!r.ok)throw new Error('Server error: '+(await r.text()).slice(0,200));
+   const d=dec(await r.arrayBuffer());SR=d.sr;parts.push(d.a,new Float32Array(Math.round(SR*(segs[i].end?pause:0.1))));
+   done+=segs[i].t.length;const pc=Math.round(done/total*100),el=(Date.now()-t0)/1000,left=Math.max(0,Math.round(el/done*(total-done)));
+   prog(pc,pc+'%'+(pc<100?'  ·  about '+left+' s left':''));await tick()}
+  let n=0;parts.forEach(p=>n+=p.length);const all=new Float32Array(n);let o=0;parts.forEach(p=>{all.set(p,o);o+=p.length});
+  if($('pol').checked){let m=0;for(let i=0;i<all.length;i++)m=Math.max(m,Math.abs(all[i]));if(m>0){const g=0.89/m;for(let i=0;i<all.length;i++)all[i]*=g}}
+  out=all;$('a').src=URL.createObjectURL(wavBlob(out,SR));$('o').style.display='block';$('st').textContent='';
+  prog(100,'100%  ·  Done');msg('Press play, or download below.')}
+ catch(e){prog(0,'');msg(e.message==='Cancelled.'?'Cancelled.':'Something went wrong: '+(e.message||e)+'\nIf the Colab link changed, paste the new one and connect again.')}
+ setBusy(false);$('go').textContent='2. Make voice'};
+
+const save=(bl,ext)=>{const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='voiceover.'+ext;document.body.appendChild(a);a.click();a.remove()};
+$('dw').onclick=()=>{if(out)save(wavBlob(out,SR),'wav')};
+$('dm').onclick=async()=>{if(!out||busy)return;setBusy(true);try{save(await mp3Blob(out,SR),'mp3');$('st').textContent='MP3 ready.'}catch(e){$('st').textContent='MP3 failed: '+e.message}setBusy(false)};
+$('d4').onclick=async()=>{if(!out||busy)return;setBusy(true);$('st').textContent='Making M4A on Colab…';
+ try{const r=await fetch(SERVER+'/m4a',{method:'POST',body:wavBlob(out,SR)});if(!r.ok)throw new Error((await r.text()).slice(0,150));save(await r.blob(),'m4a');$('st').textContent='M4A ready.'}
+ catch(e){$('st').textContent='M4A failed: '+e.message}setBusy(false)};
+</script></body></html>
